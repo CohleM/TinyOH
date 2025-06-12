@@ -7,6 +7,12 @@ import random
 import shutil
 import string
 import tempfile
+with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+    temp_file.write(b"Persistent content")
+    print("Persistent file name:", temp_file.name)
+
+# The file remains even after the program ends.
+
 This is like a really nice thing man
 woooo and this is enormous thing hahaha
 
@@ -57,28 +63,16 @@ from openhands.microagent import (
     BaseMicroagent,
     load_microagents_from_dir,
 )
-from openhands.runtime.plugins import (
-    JupyterRequirement,
-    PluginRequirement,
-    VSCodeRequirement,
-)
-from openhands.runtime.utils.edit import FileEditRuntimeMixin
-from openhands.runtime.utils.git_handler import CommandResult, GitHandler
-from openhands.utils.async_utils import (
-    GENERAL_TIMEOUT,
-    call_async_from_sync,
-    call_sync_from_async,
-)
 
-STATUS_MESSAGES = {
-    'STATUS$STARTING_RUNTIME': 'Starting runtime...',
-    'STATUS$STARTING_CONTAINER': 'Starting container...',
-    'STATUS$PREPARING_CONTAINER': 'Preparing container...',
-    'STATUS$CONTAINER_STARTED': 'Container started.',
-    'STATUS$WAITING_FOR_CLIENT': 'Waiting for client...',
-    'STATUS$SETTING_UP_WORKSPACE': 'Setting up workspace...',
-    'STATUS$SETTING_UP_GIT_HOOKS': 'Setting up git hooks...',
-}
+YOLOOO
+THIS IS REALLY COOOOOOOOLL!!!!!
+
+YOLOOO
+THIS IS REALLY COOOOOOOOLL!!!!!
+
+
+YOLOOO
+THIS IS REALLY COOOOOOOOLL!!!!!
 
 
 def _default_env_vars(sandbox_config: SandboxConfig) -> dict[str, str]:

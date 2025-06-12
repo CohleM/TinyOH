@@ -3,7 +3,7 @@ import tempfile
 import shutil
 import re
 from typing import Literal
-
+from dataclasses import dataclass
 
 from pathlib import Path
 from .encoding import with_encoding, EncodingManager
@@ -18,6 +18,17 @@ Command = Literal[
 ]
 
 SNIPPET_CONTEXT_WINDOW = 4
+
+@dataclass
+class FileEditObservation:
+    path: Path 
+    success_message: str | None = None
+    file_content: str | None = None
+    new_file_content: str | None = None
+    output: str | None = None
+
+
+
 
 class Editor:
     def __init__(self):
@@ -39,12 +50,32 @@ class Editor:
         _path = Path(path) 
         if command == 'view':
             start_line, end_line = view_range
-            self.read_file(_path, start_line, end_line)
+            out = self.read_file(_path, start_line, end_line)
+            return FileEditObservation(
+                path = _path,
+                success_message=f'Successfuly read the file from line {start_line} to {end_line} file content:\n{out}' 
+            )
+        if command == 'create':
+            self.write_file(path=_path, file_text=file_text)
+            return FileEditObservation(
+                path=_path,
+                success_message=f'Successfully Create a file at {_path} with file content:\n{file_text}'
+            )
         elif command ==  'insert':
-            self.insert(_path, insert_line, new_str)
+            return self.insert(_path, insert_line, new_str)
         elif command == 'str_replace':
-            self.str_replace(_path, new_str=new_str, old_str=old_str, enable_linting=False)
+            return self.str_replace(_path, new_str=new_str, old_str=old_str, enable_linting=False)
 
+
+    def view(self, path, view_range) -> FileEditObservation:
+        start_line, end_line = view_range
+        out = self.read_file(path, start_line, end_line)
+        
+        return FileEditObservation(
+            path=path,
+            output=out
+        )
+    
     @with_encoding
     def _count_lines(self, path: Path, encoding: str = 'utf-8') -> int:
         """
@@ -74,7 +105,7 @@ class Editor:
                         if i > end_line:
                             break
                             
-                print(''.join(text))
+                # print(''.join(text))
                 return ''.join(text) 
             else:
                 with open(path, 'r', encoding=encoding) as f:
@@ -111,7 +142,11 @@ class Editor:
                             temp_file.write(line)
 
                 shutil.move(temp_file.name, path)
-
+            
+            return FileEditObservation(
+                success_message= f'Successfully Inserted this code {new_str}',
+                path=path
+            )
         except Exception as e:
             raise ToolError(f'Error {e}')
         
@@ -124,7 +159,7 @@ class Editor:
         new_str: str | None,
         enable_linting: bool,
         encoding: str = 'utf-8',
-    ):
+    ) -> FileEditObservation:
         """
         Implement the str_replace command, which replaces old_str with new_str in the file content.
 
@@ -173,6 +208,26 @@ class Editor:
 
         # Write the new content to the file
         self.write_file(path, new_file_content)
+
+        # Create a snippet of the edited section
+        start_line = max(0, replacement_line - SNIPPET_CONTEXT_WINDOW)
+        end_line = replacement_line + SNIPPET_CONTEXT_WINDOW + new_str.count('\n')
+
+        # Read just the snippet range
+        snippet = self.read_file(path, start_line=start_line + 1, end_line=end_line)
+
+        # Prepare the success message
+
+        success_message = f'The file {path} has been edited. '
+        success_message +=  f'a snippet of {path}\nsnippet:\n{snippet}'
+        
+
+        return FileEditObservation(
+            success_message=success_message,
+            path=path,
+            file_content=file_content,
+            new_file_content=new_file_content
+        )
 
     @with_encoding
     def write_file(self, path: Path, file_text: str, encoding: str = 'utf-8') -> None:
