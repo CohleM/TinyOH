@@ -2,9 +2,9 @@ import json
 from ..tools.bash import create_cmd_run_tool
 from ..tools.str_replace_editor import create_str_replace_editor_tool
 from ..tools.finish import FinishTool
-from ..edit import Editor
-from ..bash import BashSession
-from ..exceptions import ToolError
+from ..runtime.edit import Editor
+from ..runtime.bash import BashSession
+from ..runtime.exceptions import ToolError
 from ..prompts.system_prompt import SYSTEM_PROMPT
 from dataclasses import dataclass
 
@@ -56,10 +56,11 @@ class CodeActAgent:
             response = self.step()  # out is the observation
             assistant_msg = response.choices[0].message
 
+            print('\nRESPONSE------\n', response.choices[0])
+            print('------------------')
             # check the output of out, see if there is function call with finish tool
-
             if (
-                hasattr(assistant_msg,'tool_calls') and
+                assistant_msg.tool_calls and
                 len(assistant_msg.tool_calls) == 1 and
                 assistant_msg.tool_calls[0].function.name == 'finish'
             ):
@@ -79,6 +80,10 @@ class CodeActAgent:
                         self.history.append(convert_fn_call_to_dict(tool))
                         self.history.append(observation)
 
+                elif response.choices[0].finish_reason == 'stop':
+                    print('\n-----------FINISED Execution----------\n')
+                    print(assistant_msg.content)
+                    break
                 # get the observation
                 # append to history
                 

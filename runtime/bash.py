@@ -169,7 +169,7 @@ class BashSession:
             out = self._get_pane_content()
             ps1_matches,ps1_matches_json = CmdOutputMetadata.matches_ps1_metadata(out)
             cur_ps1_matches_len = len(ps1_matches)
-            print(cur_ps1_matches_len, init_match_count)
+            # print(cur_ps1_matches_len, init_match_count)
             if cur_ps1_matches_len == init_match_count+1:
                 combined_output, combined_output_segment = (self._combine_outputs_between_matches(pane_content=out, ps1_matches=ps1_matches))
                 final_output = ''.join(combined_output_segment)
